@@ -34,17 +34,11 @@
 		<Reference Include="UnityEngine UI">
 			<HintPath>$(GameLibDir)/UnityEngine.UI.dll</HintPath>
 		</Reference>
-		<Reference Include="UnityEngine Input">
-			<HintPath>$(GameLibDir)/Unity.InputSystem.dll</HintPath>
-		</Reference>
-		<Reference Include="com.flanne.extensions">
-			<HintPath>$(GameLibDir)/com.flanne.extensions.dll</HintPath>
-		</Reference>
+		<!-- <Reference Include="com.flanne.extensions"> -->
+		<!-- 	<HintPath>$(GameLibDir)/com.flanne.extensions.dll</HintPath> -->
+		<!-- </Reference> -->
 		<Reference Include="Unity.TextMeshPro">
 			<HintPath>$(GameLibDir)/Unity.TextMeshPro.dll</HintPath>
-		</Reference>
-		<Reference Include="MTDUI">
-			<HintPath>$(BepInExDir)\plugins\MTDUI.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 

@@ -49,6 +49,14 @@ namespace UtillI.Internals
             return current == -1 || wreg.lastDisplayed > wr[current].lastDisplayed;
         }
 
+        private bool canBeDisplayedNow(WatchedRegistration wreg)
+        {
+            return (
+                wreg.reg.rule == DisplayRule.Always ||
+                wreg.reg.rule == DisplayRule.PauseOnly && Patch.isPaused ||
+                wreg.reg.rule == DisplayRule.CombatOnly && !Patch.isPaused);
+        }
+
         private void SetCurrentlyDisplayed(PanelPosition pos, int index)
         {
             int old;
@@ -75,7 +83,8 @@ namespace UtillI.Internals
             wreg.isDisplayed = true;
             wreg.lastDisplayed = 0;
             wr[index] = wreg;
-            mtp.SetText(pos, wr[index].reg.updater.GetUpdatedText());
+            var displayText = canBeDisplayedNow(wreg) ? wreg.reg.updater.GetUpdatedText() : "";
+            mtp.SetText(pos, displayText);
         }
 
         public void MainWatch()
@@ -90,7 +99,7 @@ namespace UtillI.Internals
                     wreg = wr[i];
                     wreg.lastDisplayed++;
                     wr[i] = wreg;
-                    if (isOlderThanCurrentlyDisplayed(wreg))
+                    if (isOlderThanCurrentlyDisplayed(wreg) && canBeDisplayedNow(wreg))
                     {
                         SetCurrentlyDisplayed(wreg.reg.pos, i);
                     }
