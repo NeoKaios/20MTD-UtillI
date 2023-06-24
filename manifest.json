@@ -1,0 +1,9 @@
+{
+    "name": "UtillI",
+    "version_number": "1.0.0",
+    "website_url": "",
+    "description": "This lib provides useful feature to show some additional text in-game",
+    "dependencies": [
+        "BepInExPackMTD-BepInExPack_20MTD-1.0.0"
+    ]
+}
