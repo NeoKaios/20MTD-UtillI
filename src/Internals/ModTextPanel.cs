@@ -59,14 +59,8 @@ namespace UtillI.Internals
 
         private void SetTMP(PanelPosition pos, TextMeshProUGUI tmp)
         {
-            if (pos == PanelPosition.BottomLeft)
-            {
-                tmpLeft = tmp;
-            }
-            else
-            {
-                tmpRight = tmp;
-            }
+            if (pos == PanelPosition.BottomLeft) tmpLeft = tmp;
+            else tmpRight = tmp;
         }
         private TextMeshProUGUI GetTMP(PanelPosition pos)
         {

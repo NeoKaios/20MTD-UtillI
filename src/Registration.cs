@@ -14,13 +14,10 @@ namespace UtillI
     }
     public abstract class Registration
     {
-        private static int maxId = 0;
         public PanelPosition pos { get; protected set; }
         public DisplayRule rule { get; protected set; }
-        public int id { get; }
         public Registration(PanelPosition pos, DisplayRule rule)
         {
-            this.id = maxId++;
             this.pos = pos;
             this.rule = rule;
         }
