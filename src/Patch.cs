@@ -15,7 +15,7 @@ namespace UtillI
         [HarmonyPatch(typeof(GameController), "Start")]
         static void Prefix(GameController __instance)
         {
-            RegisterDevSetup();
+            // RegisterDevSetup();
             GameObject panelObj = new GameObject("UtillI Panel", typeof(RectTransform));
             panelObj.transform.SetParent(__instance.hud.transform.parent);
             panelObj.AddComponent<Watcher>();
@@ -36,11 +36,11 @@ namespace UtillI
 
         static void RegisterDevSetup()
         {
-            UtillIRegister.Register(PanelPosition.BottomLeft, new ColorTextUpdater("white"), DisplayRule.Always);
-            UtillIRegister.Register(PanelPosition.BottomLeft, new ColorTextUpdater("yellow"), DisplayRule.PauseOnly);
-            UtillIRegister.Register(PanelPosition.BottomLeft, new ColorTextUpdater("green"), DisplayRule.CombatOnly);
-            UtillIRegister.Register(PanelPosition.BottomRight, new ColorTextUpdater("red"), DisplayRule.CombatOnly);
-            UtillIRegister.Register(PanelPosition.BottomRight, new ColorTextUpdater("blue"), DisplayRule.CombatOnly);
+            UtillIRegister.Register(new ColoredRegistration(PanelPosition.BottomLeft, DisplayRule.Always, "white"));
+            UtillIRegister.Register(new FixedColoredRegistration("yellow"));
+            UtillIRegister.Register(new ColoredRegistration(PanelPosition.BottomLeft, DisplayRule.CombatOnly, "green"));
+            UtillIRegister.Register(new ColoredRegistration(PanelPosition.BottomRight, DisplayRule.CombatOnly, "red"));
+            UtillIRegister.Register(new ColoredRegistration(PanelPosition.BottomRight, DisplayRule.Always, "blue"));
         }
     }
 }

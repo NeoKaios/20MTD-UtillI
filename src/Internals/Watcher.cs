@@ -1,6 +1,6 @@
-using UnityEngine;
 using System.Threading;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace UtillI.Internals
 {
@@ -23,10 +23,9 @@ namespace UtillI.Internals
         private readonly int watchCycleLength = 2;
         private int watchCycle = 0;
         private System.Threading.Timer watcher = null;
-
         private (int, int) currentlyDisplayedWRegIdx;
-
         private List<WatchedRegistration> wr = new List<WatchedRegistration>();
+
         void Awake()
         {
             mtp = gameObject.AddComponent<ModTextPanel>();
@@ -34,11 +33,11 @@ namespace UtillI.Internals
             StartWatcher();
             foreach (var reg in UtillIRegister.registrations)
             {
+                reg.Init();
                 wr.Add(new WatchedRegistration(reg));
             }
             currentlyDisplayedWRegIdx = (-1, -1);
         }
-
         private bool isOlderThanCurrentlyDisplayed(WatchedRegistration wreg)
         {
             var current = currentlyDisplayedWRegIdx.Item1;
@@ -48,7 +47,6 @@ namespace UtillI.Internals
             }
             return current == -1 || wreg.lastDisplayed > wr[current].lastDisplayed;
         }
-
         private bool canBeDisplayedNow(WatchedRegistration wreg)
         {
             return (
@@ -56,7 +54,6 @@ namespace UtillI.Internals
                 wreg.reg.rule == DisplayRule.PauseOnly && Patch.isPaused ||
                 wreg.reg.rule == DisplayRule.CombatOnly && !Patch.isPaused);
         }
-
         private void SetCurrentlyDisplayed(PanelPosition pos, int index)
         {
             int old;
@@ -83,10 +80,9 @@ namespace UtillI.Internals
             wreg.isDisplayed = true;
             wreg.lastDisplayed = 0;
             wr[index] = wreg;
-            var displayText = canBeDisplayedNow(wreg) ? wreg.reg.updater.GetUpdatedText() : "";
+            var displayText = canBeDisplayedNow(wreg) ? wreg.reg.GetUpdatedText() : "";
             mtp.SetText(pos, displayText);
         }
-
         public void MainWatch()
         {
             WatchedRegistration wreg;
