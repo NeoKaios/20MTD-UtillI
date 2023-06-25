@@ -12,16 +12,20 @@ namespace UtillI.Internals
             lastDisplayed = 0;
             isDisplayed = false;
         }
-        public Registration reg { get; }
+        private Registration reg { get; }
+        public DisplayRule rule { get { return reg.rule; } }
+        public PanelPosition pos { get { return reg.pos; } }
+        public string newText { get { return reg.GetUpdatedText(); } }
         public int lastDisplayed { get; set; }
         public bool isDisplayed { get; set; }
     }
     class Watcher : MonoBehaviour
     {
         private ModTextPanel mtp = null;
-        private readonly int watcherInterval = 2000;
-        private readonly int watchCycleLength = 2;
-        private int watchCycle = 0;
+        private bool isPaused = false;
+        private readonly int WATCHER_INTERVAL = 2000;
+        private readonly int WATCHER_CYCLE_LENGTH = 2;
+        private int watcherCycle = 0;
         private System.Threading.Timer watcher = null;
         private (int, int) currentlyDisplayedWRegIdx;
         private List<WatchedRegistration> wr = new List<WatchedRegistration>();
@@ -38,21 +42,96 @@ namespace UtillI.Internals
             }
             currentlyDisplayedWRegIdx = (-1, -1);
         }
-        private bool isOlderThanCurrentlyDisplayed(WatchedRegistration wreg)
+        private bool newIsOlderAndCurrentIsOldEnough(WatchedRegistration wreg)
         {
-            var current = currentlyDisplayedWRegIdx.Item1;
-            if (wreg.reg.pos == PanelPosition.BottomRight)
-            {
-                current = currentlyDisplayedWRegIdx.Item2;
-            }
-            return current == -1 || wreg.lastDisplayed > wr[current].lastDisplayed;
+            var current = GetCurrentlyDisplayed(wreg.pos);
+            return current == -1 || (wreg.lastDisplayed >= wr[current].lastDisplayed && wr[current].lastDisplayed >= WATCHER_CYCLE_LENGTH);
         }
-        private bool canBeDisplayedNow(WatchedRegistration wreg)
+        private bool canBeDisplayedNow(DisplayRule rule)
         {
             return (
-                wreg.reg.rule == DisplayRule.Always ||
-                wreg.reg.rule == DisplayRule.PauseOnly && Patch.isPaused ||
-                wreg.reg.rule == DisplayRule.CombatOnly && !Patch.isPaused);
+                rule == DisplayRule.Always ||
+                rule == DisplayRule.PauseOnly && isPaused ||
+                rule == DisplayRule.CombatOnly && !isPaused);
+        }
+        private void UpdateCurrentlyDisplayed(PanelPosition pos)
+        {
+            var index = GetCurrentlyDisplayed(pos);
+            if (index == -1) return;
+            var wreg = wr[index];
+            if (!wreg.isDisplayed)
+            {
+                wreg.lastDisplayed = 0;
+                wreg.isDisplayed = true;
+            }
+            wr[index] = wreg;
+            var displayText = canBeDisplayedNow(wreg.rule) ? wreg.newText : "";
+            mtp.SetText(pos, displayText);
+        }
+        private void UpdateDisplayedRegistration()
+        {
+            WatchedRegistration wreg;
+            for (var i = 0; i < wr.Count; i++)
+            {
+                wreg = wr[i];
+                if (wreg.isDisplayed) continue;
+                if ((newIsOlderAndCurrentIsOldEnough(wreg) || !canBeDisplayedNow(wr[GetCurrentlyDisplayed(wreg.pos)].rule)) && canBeDisplayedNow(wreg.rule))
+                {
+                    SetCurrentlyDisplayed(wreg.pos, i);
+                }
+            }
+        }
+        private void ExecuteWatcherCycle(bool forceUpdate = false)
+        {
+            for (var i = 0; i < wr.Count; i++)
+            {
+                var wreg = wr[i];
+                wreg.lastDisplayed++;
+                wr[i] = wreg;
+            }
+            if (watcherCycle % WATCHER_CYCLE_LENGTH == 0 || forceUpdate) UpdateDisplayedRegistration();
+            UpdateCurrentlyDisplayed(PanelPosition.BottomLeft);
+            UpdateCurrentlyDisplayed(PanelPosition.BottomRight);
+            watcherCycle++;
+        }
+        private void SetupWatcher()
+        {
+            watcher = new System.Threading.Timer(
+                e => (e as Watcher).ExecuteWatcherCycle(),
+                this,
+                Timeout.Infinite,
+                Timeout.Infinite);
+        }
+        private void StartWatcher()
+        {
+            watcher.Change(WATCHER_INTERVAL, WATCHER_INTERVAL);
+        }
+        private void StopWatcher()
+        {
+            watcher.Change(Timeout.Infinite, Timeout.Infinite);
+        }
+        public void HideAndStopWatcher()
+        {
+            mtp.Hide(PanelPosition.BottomLeft);
+            mtp.Hide(PanelPosition.BottomRight);
+            StopWatcher();
+        }
+        public void SetPauseStatus(bool isPaused)
+        {
+            if (this.isPaused != isPaused)
+            {
+                this.isPaused = isPaused;
+                ExecuteWatcherCycle(true);
+            }
+        }
+        private int GetCurrentlyDisplayed(PanelPosition pos)
+        {
+            var index = currentlyDisplayedWRegIdx.Item1;
+            if (pos == PanelPosition.BottomRight)
+            {
+                index = currentlyDisplayedWRegIdx.Item2;
+            }
+            return index;
         }
         private void SetCurrentlyDisplayed(PanelPosition pos, int index)
         {
@@ -73,61 +152,6 @@ namespace UtillI.Internals
                 wreg.isDisplayed = false;
                 wr[old] = wreg;
             }
-        }
-        private void SetAsDisplayed(PanelPosition pos, int index)
-        {
-            var wreg = wr[index];
-            wreg.isDisplayed = true;
-            wreg.lastDisplayed = 0;
-            wr[index] = wreg;
-            var displayText = canBeDisplayedNow(wreg) ? wreg.reg.GetUpdatedText() : "";
-            mtp.SetText(pos, displayText);
-        }
-        public void MainWatch()
-        {
-            WatchedRegistration wreg;
-            if (watchCycle % watchCycleLength == 0)
-            {
-                // Change displayed reg
-                for (var i = 0; i < wr.Count; i++)
-                {
-                    if (wr[i].isDisplayed) continue;
-                    wreg = wr[i];
-                    wreg.lastDisplayed++;
-                    wr[i] = wreg;
-                    if (isOlderThanCurrentlyDisplayed(wreg) && canBeDisplayedNow(wreg))
-                    {
-                        SetCurrentlyDisplayed(wreg.reg.pos, i);
-                    }
-                }
-            }
-            if (currentlyDisplayedWRegIdx.Item1 != -1)
-            {
-                SetAsDisplayed(PanelPosition.BottomLeft, currentlyDisplayedWRegIdx.Item1);
-            }
-            if (currentlyDisplayedWRegIdx.Item1 != -1)
-            {
-                SetAsDisplayed(PanelPosition.BottomRight, currentlyDisplayedWRegIdx.Item2);
-            }
-            watchCycle++;
-        }
-        private void SetupWatcher()
-        {
-            watcher = new System.Threading.Timer(
-                e => (e as Watcher).MainWatch(),
-                this,
-                Timeout.Infinite,
-                Timeout.Infinite);
-        }
-
-        public void StartWatcher()
-        {
-            watcher.Change(watcherInterval, watcherInterval);
-        }
-
-        public void StopWatcher()
-        {
-            watcher.Change(Timeout.Infinite, Timeout.Infinite);
         }
     }
 }
