@@ -16,7 +16,7 @@ namespace UtillI
     {
         public PanelPosition pos { get; protected set; }
         public DisplayRule rule { get; protected set; }
-        public Registration(PanelPosition pos, DisplayRule rule)
+        public Registration(PanelPosition pos, DisplayRule rule = DisplayRule.PauseOnly)
         {
             this.pos = pos;
             this.rule = rule;

@@ -5,7 +5,7 @@ using UnityEngine;
 using UtillI.Internals;
 using UtillI.Examples;
 
-namespace UtillI
+namespace UtillI.Patches
 {
     [HarmonyPatch]
     class Patch

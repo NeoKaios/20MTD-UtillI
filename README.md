@@ -6,13 +6,26 @@ A [BepInEx](https://github.com/BepInEx/BepInEx/releases) library for [20 Minutes
 
 Offer a easy way for modders to display text during a game of 20MTD.
 
+### Create a Registration class
+```csharp
+using UtillI;
+public class ExampleRegistration : Registration
+{
+    public ExampleRegistration() : base(PanelPosition.BottomLeft) { }
+    override public string GetUpdatedText()
+    {
+        return "Some text";
+    }
+}
+```
+For more example look at `UtillI.Examples`.
 ### Register yourself
 
-Simply register your instance of `TextUpdater` and the position of the text you wish to display:
+Simply register your instance of `Registration` to `UtillIRegister`:
 ```csharp
 using UtillI;
 using UtillI.Examples;
-UtillIRegister.Register(PanelPosition.BottomLeft, new ColorTextUpdater("white"));
+UtillIRegister.Register(new ExampleRegistration());
 ```
 
 ## Contributions
@@ -21,8 +34,8 @@ This UI lib was originally inspired by the [BetterUI](https://github.com/sloverl
 
 ## For modders
 
-- Clone the [repo](https://github.com/NeoKaios/20MTD-GeneralUtilityMod)
+- Clone the [repo](https://github.com/NeoKaios/20MTD-UtillI)
 - Open repo in VSCode
-- Setup $GameDir variable in *GeneralUtilityMod.csproj*
+- Setup $GameDir variable in *UtillI.csproj*
 - ```dotnet build``` to build and deploy mod
 - ```dotnet publish``` to publish a .zip file

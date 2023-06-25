@@ -5,7 +5,7 @@ namespace UtillI.Examples
     {
         private int i = 1000;
         private string color = "white";
-        public FixedColoredRegistration(string color = "white") : base(PanelPosition.BottomLeft, DisplayRule.PauseOnly)
+        public FixedColoredRegistration(string color = "white") : base(PanelPosition.BottomLeft)
         {
             this.color = color;
         }
